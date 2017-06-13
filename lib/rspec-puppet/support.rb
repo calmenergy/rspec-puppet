@@ -143,13 +143,10 @@ module RSpec::Puppet
           'hostname'      => node.split('.').first
         }
       }
-
-      if RSpec.configuration.default_facts.any?
-        facts_val = munge_facts(RSpec.configuration.default_facts).merge(facts_val)
-      end
-
-      facts_val = munge_facts(facts).merge(facts_val) if self.respond_to?(:facts)
-      facts_val
+      
+      result_facts = RSpec.configuration.default_facts.any? ? munge_facts(RSpec.configuration.default_facts) : {}
+      result_facts.merge!(munge_facts(facts)) if self.respond_to?(:facts)
+      result_facts.merge(facts_val)
     end
 
     def param_str(params)
