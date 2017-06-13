@@ -145,9 +145,23 @@ module RSpec::Puppet
       }
       
       result_facts = RSpec.configuration.default_facts.any? ? munge_facts(RSpec.configuration.default_facts) : {}
-      result_facts.merge!(munge_facts(facts)) if self.respond_to?(:facts)
-      result_facts.merge(facts_val)
+      result_facts.deep_merge!(munge_facts(facts)) if self.respond_to?(:facts)
+      result_facts.deep_merge(facts_val)
     end
+
+class ::Hash
+    def deep_merge(src)
+      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
+      self.merge(src.to_hash, &merger)
+    end
+
+    def deep_merge!(src)
+      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
+      self.merge!(src.to_hash, &merger)
+    end
+end
+    
+
 
     def param_str(params)
       param_str_from_hash(params)
